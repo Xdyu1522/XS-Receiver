@@ -2,9 +2,9 @@
 
 几乎支持所有笔趣阁(出了问题我也没办法,可以在Issuse中提出,后面可能会添加支持<毕竟笔趣阁太多了>)  
 使用python编写,8线程获取小说
-输入链接地址(如http://*\*\*\*\*.com/book/\*\*\*\*\*\*\)与根地址(如http://www.*****.com)开始使用  
+输入链接地址(如http://www.*\*\*\*\*.com/book/\*\*\*\*\*\*\)与根地址(如http://www.*****.com)开始使用  
 注:需要python3.x环境  
-主要使用库:`requests` `beautifulsoup4` `tqdm` `fake_useragent` `os` `threading` `math` `ssl`  
+主要使用库:`requests`, `beautifulsoup4`, `tqdm`, `fake_useragent`, `os`, `threading`, `math`, `ssl` . 
 使用方法(Windows Powerhell):  
 ```bash
 git clone git@github.com:Xie1522/XS-Receiver.git
