@@ -107,7 +107,6 @@ class Download:
         print('完成.')
 
 if __name__ == '__main__': 
-    print('仅支持不含"最新章节"的小说页面')
     print('欢迎来到小说接收器,请输入小说链接')
     url = input('请输入链接:')
     root = input('请输入根地址:')
