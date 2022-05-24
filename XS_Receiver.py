@@ -2,16 +2,21 @@ import os
 import threading
 import math
 import ssl
+import time
+import random
 
 import bs4
 import requests
 import tqdm
+from colorama import init, Fore
 from fake_useragent import UserAgent
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
 class Download: 
     def __init__(self, url, root): 
+        init(autoreset=True)
+        self.failed_list = []
         self.url = url
         self.ua = UserAgent()
         self.root = root
@@ -28,7 +33,7 @@ class Download:
             self.cha_list.append((i.getText(), f'{self.root}{href}'))
         os.makedirs(self.title_of_book, exist_ok=True)
         os.chdir(f'./{self.title_of_book}')
-        print('开始获取.')
+        print(f'{Fore.GREEN}开始获取.')
         self.bar = tqdm.tqdm(total=len(self.cha_list))
 
     #TODO:函数`get_book`获取章节内容并写入文件
@@ -37,6 +42,14 @@ class Download:
         for book in self.cha_list[_from:to-1]: 
             try: 
                 get = requests.get(book[1], headers={'User-Agent': str(self.ua.random)})
+
+                if get.status_code != requests.codes.ok: 
+                    time.sleep(random.randint(5, 10))
+                    get = requests.get(book[1], headers={'User-Agent': str(self.ua.random)})
+                if get.status_code != requests.codes.ok: 
+                    time.sleep(random.randint(5, 10))
+                    get = requests.get(book[1], headers={'User-Agent': str(self.ua.random)})
+                
                 get.encoding = get.apparent_encoding
                 find = bs4.BeautifulSoup(get.text, 'html.parser')
                 find_text = find.select('#content')
@@ -48,7 +61,8 @@ class Download:
                     f.write(f'\u3000\u3000{book[0]}')
                     f.write(text)
             except Exception: 
-                tqdm.tqdm.write(f'{book[0]}获取失败.')
+                self.failed_list.append(book)
+                # tqdm.tqdm.write(f'{book[0]}获取失败.')
             finally: 
                 cha_id += 1
                 self.bar.update(1)
@@ -56,7 +70,7 @@ class Download:
     
 
     #TODO:函数`run`增加多线程获取内容
-    def main(self):   # sourcery skip: convert-to-enumerate, for-append-to-extend, list-comprehension, merge-list-appends-into-extend, merge-list-extend, move-assign-in-block, unwrap-iterable-construction
+    def main(self):   # sourcery skip: convert-to-enumerate, for-append-to-extend, list-comprehension, merge-list-appends-into-extend, merge-list-extend, move-assign-in-block, unwrap-iterable-construction, use-fstring-for-concatenation
         self.get_list()
         num = len(self.cha_list)
         fen_pei = []
@@ -104,7 +118,13 @@ class Download:
             t.join()
 
         self.bar.close()
-        print('完成.')
+
+        print(Fore.GREEN + '完成.')
+
+        if len(self.failed_list) != 0: 
+            print('以下章节获取'+ Fore.RED +'失败:')
+            for fail in self.failed_list: 
+                print(f'{Fore.YELLOW}  - {fail[0]} 地址为: {fail[1]}')
 
 if __name__ == '__main__': 
     print('欢迎来到小说接收器,请输入小说链接')
