@@ -14,7 +14,7 @@
 使用python编写,8线程获取小说
 输入链接地址(如`http://www.*****.com/book/*****`)开始使用  
 注:需要python3.x环境  
-主要使用库:`requests`, `beautifulsoup4`, `tqdm`, `fake_useragent`, `colorama`, `os`, `threading`, `math`, `ssl` .   
+主要使用库:`requests`, `beautifulsoup4`, `tqdm`, `fake_useragent`, `colorama`, `os`, `threading`, `math`, `ssl` , `re`.   
 使用方法(Windows Powerhell):  
 ```bash
 git clone git@github.com:Xie1522/XS-Receiver.git
