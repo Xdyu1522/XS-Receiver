@@ -4,6 +4,7 @@ import math
 import ssl
 import time
 import random
+import re
 
 import bs4
 import requests
@@ -14,12 +15,23 @@ from fake_useragent import UserAgent
 ssl._create_default_https_context = ssl._create_unverified_context
 
 class Download: 
-    def __init__(self, url, root): 
+    def __init__(self, url):   # sourcery skip: do-not-use-bare-except
         init(autoreset=True)
         self.failed_list = []
         self.url = url
         self.ua = UserAgent()
-        self.root = root
+        http_findobj = re.compile(r'http://(.*).com')
+        root = http_findobj.search(url)
+        try: 
+            self.root = root.group()
+        except: 
+            https_findobj = re.compile(r'https://(.*).com')
+            root = https_findobj.search(url)
+        try: 
+            self.root = root.group()
+        except:
+            print('请输入正确的网址.')
+            os.sys.exit()
 
     def get_list(self): 
         self.ym_download = requests.get(url, headers={'User-Agent': str(self.ua.random)})
@@ -129,7 +141,7 @@ class Download:
 if __name__ == '__main__': 
     print('欢迎来到小说接收器,请输入小说链接')
     url = input('请输入链接:')
-    root = input('请输入根地址:')
-    get =  Download(url=url, root=root)
+    # root = input('请输入根地址:')
+    get =  Download(url=url)
     get.main()
     # get.bar.close()
