@@ -15,11 +15,12 @@ from fake_useragent import UserAgent
 ssl._create_default_https_context = ssl._create_unverified_context
 
 class Download: 
-    def __init__(self, url):   # sourcery skip: do-not-use-bare-except
+    def __init__(self, url:str, num:int=8):   # sourcery skip: do-not-use-bare-except
         init(autoreset=True)
         self.failed_list = []
         self.url = url
         self.ua = UserAgent()
+        self.num = num
         http_findobj = re.compile(r'http://(.*).com')
         root = http_findobj.search(url)
         try: 
@@ -46,11 +47,13 @@ class Download:
         os.makedirs(self.title_of_book, exist_ok=True)
         os.chdir(f'./{self.title_of_book}')
         print(f'{Fore.GREEN}开始获取.')
-        self.bar = tqdm.tqdm(total=len(self.cha_list))
+        self.bar = tqdm.tqdm(total=len(self.cha_list) + self.num)
 
     #TODO:函数`get_book`获取章节内容并写入文件
-    def get_book(self, _from, to, Tname): 
+    def get_book(self, _from, to, Tname, all:bool=True): 
         cha_id = 0
+        if all: 
+            name_list = []
         for book in self.cha_list[_from:to-1]: 
             try: 
                 get = requests.get(book[1], headers={'User-Agent': str(self.ua.random)})
@@ -69,7 +72,8 @@ class Download:
                 text = text.replace('\xa0\xa0\xa0\xa0', '\n\n\u3000\u3000').replace('\xa0\xa0\xa0\xa0', '')
                 name = book[0].replace('*', '').replace('?', '')
 
-                with open(f'{Tname}.{cha_id}{name}.txt', 'w', encoding='utf-8') as f: 
+                full_name = f'{Tname}.{cha_id}{name}.txt'
+                with open(full_name, 'w', encoding='utf-8') as f: 
                     f.write(f'\u3000\u3000{book[0]}')
                     f.write(text)
             except Exception: 
@@ -77,8 +81,17 @@ class Download:
                 # tqdm.tqdm.write(f'{book[0]}获取失败.')
             finally: 
                 cha_id += 1
+                if all: 
+                    name_list.append(full_name)
                 self.bar.update(1)
-        
+        if all:         
+            all_text = ""
+            for name in name_list: 
+                with open(name, 'r', encoding='utf-8') as f: 
+                    all_text = all_text + "\n\n" + f.read()
+
+            with open(f'.{Tname}.txt', 'w', encoding='utf-8') as f: 
+                f.write(all_text)
     
 
     #TODO:函数`run`增加多线程获取内容
@@ -86,7 +99,7 @@ class Download:
         self.get_list()
         num = len(self.cha_list)
         fen_pei = []
-        piece = num / 8
+        piece = num / self.num
         threads = []
         # if debug == True: self.thread_num = 3
         # elif len(self.cha_list) % 3 == 0: self.thread_num = 3
@@ -105,17 +118,20 @@ class Download:
         #         t.setDaemon(True)
         #         t.start()
         #     t.join()
-        
+
         # elif self.thread_num == 3: 
         #     fen_pei = [(0, math.ceil(len(self.cha_list) / 3)), (math.ceil(len(self.cha_list) / 3 + 1), len(self.cha_list))]
+        # fen_pei.append((0, math.ceil(piece)))
+        # fen_pei.append((math.floor(piece) + 1, math.ceil(piece * 2)))
+        # fen_pei.append((math.floor(piece * 2) + 1, math.ceil(piece * 3)))
+        # fen_pei.append((math.floor(piece * 3) + 1, math.ceil(piece * 4)))
+        # fen_pei.append((math.floor(piece * 4) + 1, math.ceil(piece * 5)))
+        # fen_pei.append((math.floor(piece * 5) + 1, math.ceil(piece * 6)))
+        # fen_pei.append((math.floor(piece * 6) + 1, math.ceil(piece * 7)))
+        # fen_pei.append((math.floor(piece * 7) + 1, math.ceil(piece * 8)))
         fen_pei.append((0, math.ceil(piece)))
-        fen_pei.append((math.floor(piece) + 1, math.ceil(piece * 2)))
-        fen_pei.append((math.floor(piece * 2) + 1, math.ceil(piece * 3)))
-        fen_pei.append((math.floor(piece * 3) + 1, math.ceil(piece * 4)))
-        fen_pei.append((math.floor(piece * 4) + 1, math.ceil(piece * 5)))
-        fen_pei.append((math.floor(piece * 5) + 1, math.ceil(piece * 6)))
-        fen_pei.append((math.floor(piece * 6) + 1, math.ceil(piece * 7)))
-        fen_pei.append((math.floor(piece * 7) + 1, math.ceil(piece * 8)))
+        for f in range(1, self.num): 
+            fen_pei.append((math.floor(piece * f) + 1, math.ceil(piece * (f + 1))))
 
         i = 0
         for th in fen_pei: 
@@ -142,6 +158,23 @@ if __name__ == '__main__':
     print('欢迎来到小说接收器,请输入小说链接')
     url = input('请输入链接:')
     # root = input('请输入根地址:')
-    get =  Download(url=url)
+    while True: 
+        num = input('请输入线程数(按enter使用默认值8):')
+        if not num.isdigit() and num != "":
+            continue
+        if num.isdigit(): 
+            num = int(num)
+        break
+
+    yn = input('是否需要章节合集(是输入y,否按enter):')
+    if yn == "y" and num == "": 
+        get = Download(url=url, all=True)
+    elif yn == 'y' and type(num) == int: 
+        get = Download(url=url, all=True, num=num)
+    elif yn != 'y' and type(num) == int: 
+        get = Download(url=url, all=False, num=num)
+    elif yn != 'y' and num == '':
+        get =  Download(url=url, all=False)
+        
     get.main()
     # get.bar.close()
