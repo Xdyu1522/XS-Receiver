@@ -15,8 +15,9 @@ from fake_useragent import UserAgent
 ssl._create_default_https_context = ssl._create_unverified_context
 
 class Download: 
-    def __init__(self, url:str, num:int=8):   # sourcery skip: do-not-use-bare-except
+    def __init__(self, url:str, num:int=8, all:bool=True):   # sourcery skip: do-not-use-bare-except
         init(autoreset=True)
+        self.all = all
         self.failed_list = []
         self.url = url
         self.ua = UserAgent()
@@ -50,9 +51,9 @@ class Download:
         self.bar = tqdm.tqdm(total=len(self.cha_list) + self.num)
 
     #TODO:函数`get_book`获取章节内容并写入文件
-    def get_book(self, _from, to, Tname, all:bool=True): 
+    def get_book(self, _from, to, Tname): 
         cha_id = 0
-        if all: 
+        if self.all: 
             name_list = []
         for book in self.cha_list[_from:to-1]: 
             try: 
@@ -81,10 +82,10 @@ class Download:
                 # tqdm.tqdm.write(f'{book[0]}获取失败.')
             finally: 
                 cha_id += 1
-                if all: 
+                if self.all: 
                     name_list.append(full_name)
                 self.bar.update(1)
-        if all:         
+        if self.all:         
             all_text = ""
             for name in name_list: 
                 with open(name, 'r', encoding='utf-8') as f: 
