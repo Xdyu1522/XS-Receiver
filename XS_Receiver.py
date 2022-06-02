@@ -36,7 +36,7 @@ class Download:
             os.sys.exit()
 
     def get_list(self): 
-        self.ym_download = requests.get(url, headers={'User-Agent': str(self.ua.random)})
+        self.ym_download = requests.get(self.url, headers={'User-Agent': str(self.ua.random)})
         self.ym_download.encoding = self.ym_download.apparent_encoding #!处理字符编码，否则可能出现乱码！
         ym_download_find = bs4.BeautifulSoup(self.ym_download.text, 'html.parser')
         self.title_of_book = ym_download_find.select('h1')[0].getText()
